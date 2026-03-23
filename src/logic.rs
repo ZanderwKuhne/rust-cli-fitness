@@ -2,8 +2,8 @@ use std::{fs, io};
 
 use chrono::{DateTime, Local};
 
-use crate::calc::{self, calc_bmr, calc_dri};
-use crate::users::User;
+use crate::calc::{self, calc_bmr, calc_dri, macros_calories};
+use crate::users::{LogMeal, User};
 
 //store the user in the json file
 pub fn store_user() -> std::io::Result<()> {
@@ -101,6 +101,7 @@ pub fn store_user() -> std::io::Result<()> {
         bmr: u_bmr,
         dri: u_dri,
         date: Local::now(),
+        meals: Vec::new(),
     };
 
     let json_log = serde_json::to_string_pretty(&user)?;
@@ -126,4 +127,20 @@ fn update_user(/* User struct */) /* not sure if it should return a value */ {}
 fn log_activities() /*not sure if it should return a value, maybe activity struct? */ {}
 
 //Log a meal for user
-fn log_meal() /*not sure if it should return a value, maybe meal struct? */ {}
+fn log_meal(name: &str, protein: u32, fat: u32, carbs: u32) -> std::io::Result<()> {
+    let kcal: u32 = macros_calories(protein, carbs, fat);
+    let mut user: User = pull_user(&name)?;
+
+    let new_meal = LogMeal {
+        kcal: kcal,
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        date: Local::now(),
+    };
+
+    user.meals.push(new_meal);
+    let json = serde_json::to_string_pretty(&user)?;
+    fs::write(format!("{}.json", name.trim()), json)?;
+    Ok(())
+}

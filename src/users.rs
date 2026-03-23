@@ -14,6 +14,7 @@ pub struct User {
     pub gender: String,
     pub name: String,
     pub date: DateTime<Local>,
+    pub meals: Vec<LogMeal>,
 }
 
 #[derive(Serialize, Deserialize)]
