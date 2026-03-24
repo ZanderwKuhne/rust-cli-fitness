@@ -1,9 +1,10 @@
+use std::io::Write;
 use std::{fs, io};
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Duration, Local};
 
 use crate::calc::{self, calc_bmr, calc_dri, macros_calories};
-use crate::users::{LogMeal, User};
+use crate::users::{LogActivity, LogMeal, User};
 
 //store the user in the json file
 pub fn store_user() -> std::io::Result<()> {
@@ -102,6 +103,7 @@ pub fn store_user() -> std::io::Result<()> {
         dri: u_dri,
         date: Local::now(),
         meals: Vec::new(),
+        activities: Vec::new(),
     };
 
     let json_log = serde_json::to_string_pretty(&user)?;
@@ -124,11 +126,24 @@ pub fn pull_user(name: &str) -> std::io::Result<User> {
 fn update_user(/* User struct */) /* not sure if it should return a value */ {}
 
 //Log activities for user
-fn log_activities() /*not sure if it should return a value, maybe activity struct? */ {}
+pub fn log_activity(name: &str, kcal_burnt: u32, act_type: String) -> std::io::Result<()> {
+    let mut user = pull_user(name)?;
+
+    let new_activity = LogActivity {
+        act_type: act_type,
+        kcal_burn: kcal_burnt,
+        date: Local::now(),
+    };
+    user.activities.push(new_activity);
+
+    let json = serde_json::to_string_pretty(&user)?;
+    fs::write(format!("{}.json", name.trim()), json)?;
+
+    Ok(())
+}
 
 //Log a meal for user
-fn log_meal(name: &str, protein: u32, fat: u32, carbs: u32) -> std::io::Result<()> {
-    let kcal: u32 = macros_calories(protein, carbs, fat);
+pub fn log_meal(name: &str, kcal: u32, protein: u32, fat: u32, carbs: u32) -> std::io::Result<()> {
     let mut user: User = pull_user(&name)?;
 
     let new_meal = LogMeal {
@@ -143,4 +158,32 @@ fn log_meal(name: &str, protein: u32, fat: u32, carbs: u32) -> std::io::Result<(
     let json = serde_json::to_string_pretty(&user)?;
     fs::write(format!("{}.json", name.trim()), json)?;
     Ok(())
+}
+
+pub fn get_calorie_sum(user: &User, days: i64) -> u32 {
+    let now = Local::now().date_naive();
+    let start_date = now - Duration::days(days);
+
+    user.meals
+        .iter()
+        .filter(|meal| {
+            let meal_date = meal.date.date_naive();
+            meal_date >= start_date && meal_date <= now
+        })
+        .map(|meal| meal.kcal)
+        .sum()
+}
+
+pub fn get_activity_sum(user: &User, days: i64) -> u32 {
+    let now = Local::now().date_naive();
+    let start_date = now - Duration::days(days);
+
+    user.activities
+        .iter()
+        .filter(|act| {
+            let act_date = act.date.date_naive();
+            act_date >= start_date && act_date <= now
+        })
+        .map(|act| act.kcal_burn)
+        .sum()
 }
