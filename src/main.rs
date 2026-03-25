@@ -66,8 +66,8 @@ fn main() {
                         println!("Enter meal details:");
 
                         let protein = helper::get_input("Protein (g): ");
-                        let carbs = helper::get_input("Carbs (g)");
-                        let fat = helper::get_input("Fat (g)");
+                        let carbs = helper::get_input("Carbs (g): ");
+                        let fat = helper::get_input("Fat (g): ");
 
                         let kcal = calc::macros_calories(protein, carbs, fat);
 
@@ -180,7 +180,7 @@ fn main() {
                                     .ok();
                                 helper::pause();
                             }
-                            "n" => break,
+                            "n" => continue,
                             _ => {
                                 println!("Invalid option.");
                                 helper::pause();

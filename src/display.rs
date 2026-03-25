@@ -119,18 +119,42 @@ fn weight_chart(user: &User) {
         println!("No weight history recorded yet.");
         return;
     }
+    let mut all_weights: Vec<f32> = user.weights.iter().map(|(_, w)| *w).collect();
+    all_weights.push(user.goal_weight);
 
-    let max_w = user
-        .weights
-        .iter()
-        .map(|(_, w)| *w)
-        .fold(f32::MAX, f32::min);
-    let padding = 2.0;
+    let max_w = all_weights.iter().copied().fold(f32::MIN, f32::max);
+    let min_w = all_weights.iter().copied().fold(f32::MAX, f32::min);
+    let range = max_w - min_w;
+    let chart_width = 40.0;
 
     for (date, weight) in &user.weights {
-        let bar_len = (weight - (max_w - padding) * 2.0) as usize;
+        let normalized_len = if range > 0.1 {
+            ((weight - min_w) / range) * chart_width
+        } else {
+            chart_width / 2.0
+        };
+
+        let bar_len = (normalized_len as usize).max(1);
         let bar = "█".repeat(bar_len).red();
 
-        println!("{}: {:>5.1} kg {}", date.format("%b %d"), weight, bar);
+        println!(
+            "{}: {:>5.1} kg {}",
+            date.format("%b %d").to_string().red(),
+            weight,
+            bar
+        );
+
+        println!(
+            "{}",
+            "------------------------------------------".bright_black()
+        );
+
+        let current_weight = user.weight;
+        let diff = current_weight - user.goal_weight;
+        if diff > 0.0 {
+            println!("{} kg to go!", format!("{:.1}", diff).red());
+        } else {
+            println!("{}", "Goal weight reached!".green().bold());
+        }
     }
 }
