@@ -1,2 +1,5 @@
-*.json
 /target
+Dockerfile
+.dockerignore
+Cargo.lock
+**/*.json

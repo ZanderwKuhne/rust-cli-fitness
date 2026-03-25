@@ -39,7 +39,7 @@ pub fn store_user() -> std::io::Result<()> {
 
     let u_system: bool = if sys.trim() == "1" { true } else { false };
 
-    println!("What is your gender?\n");
+    println!("What is your gender? (male/female)\n");
     io::stdin()
         .read_line(&mut u_gender)
         .expect("Failed to capture gender");
@@ -115,7 +115,7 @@ pub fn store_user() -> std::io::Result<()> {
     };
 
     let json_log = serde_json::to_string_pretty(&user)?;
-    let file_name = format!("{}.json", user.name);
+    let file_name = format!("data/{}.json", user.name.trim());
     fs::write(file_name, json_log)?;
 
     println!("User details captured");
@@ -124,7 +124,7 @@ pub fn store_user() -> std::io::Result<()> {
 
 //Load user data
 pub fn pull_user(name: &str) -> std::io::Result<User> {
-    let file_path = format!("{}.json", name.trim());
+    let file_path = format!("data/{}.json", name.trim());
     let json_data = fs::read_to_string(file_path)?;
     let user: User = serde_json::from_str(&json_data)?;
     Ok(user)
@@ -140,7 +140,7 @@ pub fn update_user(name: &str, new_weight: f32) -> std::io::Result<()> {
     user.dri = crate::calc::calc_dyna_dri(user.bmr, user.act_level, user.weight, user.goal_weight);
 
     let json = serde_json::to_string_pretty(&user)?;
-    fs::write(format!("{}.json", user.name.trim()), json)?;
+    fs::write(format!("data/{}.json", user.name.trim()), json)?;
     Ok(())
 }
 
@@ -149,7 +149,7 @@ pub fn update_goal_weight(name: &str, new_weight: f32) -> std::io::Result<()> {
     user.goal_weight = new_weight;
 
     let json = serde_json::to_string_pretty(&user)?;
-    fs::write(format!("{}.json", user.name.trim()), json)?;
+    fs::write(format!("data/{}.json", user.name.trim()), json)?;
     Ok(())
 }
 
@@ -158,7 +158,7 @@ pub fn delete_meal(name: &str, index: usize) -> std::io::Result<()> {
     if index < user.meals.len() {
         user.meals.remove(index);
         let json = serde_json::to_string_pretty(&user)?;
-        fs::write(format!("{}.json", user.name.trim()), json)?;
+        fs::write(format!("data/{}.json", user.name.trim()), json)?;
         Ok(())
     } else {
         Err(std::io::Error::new(
