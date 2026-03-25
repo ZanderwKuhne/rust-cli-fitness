@@ -1,3 +1,5 @@
+use std::usize;
+
 // Module handling display logic
 use crate::users::User;
 use colored::*;
@@ -63,6 +65,8 @@ pub fn show_dashboard(user: &User) {
     );
     println!("-------------------------------");
     println!("===============================\n");
+
+    weight_chart(&user);
 }
 
 pub fn list_meals(user: &User) {
@@ -107,4 +111,26 @@ pub fn list_activities(user: &User) {
         );
     }
     println!("-------------------------------");
+}
+
+fn weight_chart(user: &User) {
+    println!("\n--- Weight Progress Chart ---");
+    if user.weights.is_empty() {
+        println!("No weight history recorded yet.");
+        return;
+    }
+
+    let max_w = user
+        .weights
+        .iter()
+        .map(|(_, w)| *w)
+        .fold(f32::MAX, f32::min);
+    let padding = 2.0;
+
+    for (date, weight) in &user.weights {
+        let bar_len = (weight - (max_w - padding) * 2.0) as usize;
+        let bar = "█".repeat(bar_len).red();
+
+        println!("{}: {:>5.1} kg {}", date.format("%b %d"), weight, bar);
+    }
 }

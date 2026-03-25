@@ -1,15 +1,15 @@
 use std::{fs, io};
 
-use chrono::{Duration, Local};
+use chrono::{Duration, Local, NaiveDate};
 
-use crate::calc::{calc_bmr, calc_dri};
+use crate::calc::{calc_bmr, calc_dri, get_age};
 use crate::users::{LogActivity, LogMeal, User};
 
 //store the user in the json file
 pub fn store_user() -> std::io::Result<()> {
     let mut sys: String = String::new();
     let mut u_name: String = String::new();
-    let mut u_age: String = String::new();
+    let mut u_birth: String = String::new();
     let mut u_gender: String = String::new();
     let mut u_height: String = String::new();
     let mut u_weight: String = String::new();
@@ -20,11 +20,18 @@ pub fn store_user() -> std::io::Result<()> {
     io::stdin()
         .read_line(&mut u_name)
         .expect("Failed to capture name");
-    println!("Enter your age:\n");
+    println!("Enter your birthdate (YYYY-MM-DD):\n");
     io::stdin()
-        .read_line(&mut u_age)
+        .read_line(&mut u_birth)
         .expect("Failed to capture age");
-    let f_age: u8 = u_age.trim().parse().expect("No byte read");
+    let u_birthdate = match NaiveDate::parse_from_str(&u_birth.trim(), "%Y-%m-%d") {
+        Ok(date) => date,
+        Err(_) => {
+            println!("Invalid format! Defaulting to 1990-01-01.");
+            NaiveDate::from_ymd_opt(1990, 1, 1).unwrap()
+        }
+    };
+    let f_age = get_age(u_birthdate);
     println!("Metric system: 1\nImperial system: 2\n");
     io::stdin()
         .read_line(&mut sys)
@@ -100,6 +107,8 @@ pub fn store_user() -> std::io::Result<()> {
         age: f_age,
         bmr: u_bmr,
         dri: u_dri,
+        birthdate: u_birthdate,
+        weights: Vec::new(),
         date: Local::now(),
         meals: Vec::new(),
         activities: Vec::new(),
@@ -124,6 +133,7 @@ pub fn pull_user(name: &str) -> std::io::Result<User> {
 //Update stored user information
 pub fn update_user(name: &str, new_weight: f32) -> std::io::Result<()> {
     let mut user = pull_user(name)?;
+    user.weights.push((Local::now().date_naive(), new_weight));
     user.weight = new_weight;
 
     user.bmr = crate::calc::calc_bmr(user.height, user.weight, &user.gender, user.age);

@@ -7,6 +7,7 @@ mod users;
 use crate::{helper::get_input, users::User};
 use crossterm::{
     execute,
+    style::Stylize,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::stdout;
@@ -55,6 +56,7 @@ fn main() {
                 println!("2. Log an Activity");
                 println!("3. View User Dashboard");
                 println!("4. Manage User Details");
+                println!("5. Convert steps to calories");
                 println!("q. Logout");
 
                 let choice = helper::get_string_input("> ");
@@ -148,6 +150,37 @@ fn main() {
                                 helper::pause();
                             }
                             "q" => break,
+                            _ => {
+                                println!("Invalid option.");
+                                helper::pause();
+                            }
+                        }
+                    }
+                    "5" => {
+                        helper::clear_screen();
+                        let steps = helper::get_input("Enter stepcount to convert: ");
+                        let step_cal = calc::step_to_calories(steps, user.weight, user.height);
+                        println!(
+                            "{} Steps converts to an about {} kcal burned!",
+                            steps.to_string().red(),
+                            step_cal.to_string().red()
+                        );
+                        let log_steps = helper::get_string_input(
+                            "\nWould you like to log this as a workout for today?(y/n)",
+                        );
+                        match log_steps.as_str() {
+                            "y" => {
+                                let act: String = "Walking".to_string();
+                                logic::log_activity(&user.name, step_cal, act)
+                                    .and_then(|_| logic::pull_user(&user.name))
+                                    .map(|update| {
+                                        *user = update;
+                                        println!("Activity logged!");
+                                    })
+                                    .ok();
+                                helper::pause();
+                            }
+                            "n" => break,
                             _ => {
                                 println!("Invalid option.");
                                 helper::pause();

@@ -1,6 +1,6 @@
 // User and user related structs
 // Serde to store and retrieve struct data in
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -15,6 +15,8 @@ pub struct User {
     pub dri: f32,
     pub gender: String,
     pub name: String,
+    pub birthdate: NaiveDate,
+    pub weights: Vec<(NaiveDate, f32)>,
     pub date: DateTime<Local>,
     pub meals: Vec<LogMeal>,
     pub activities: Vec<LogActivity>,

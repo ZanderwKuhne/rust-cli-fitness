@@ -1,3 +1,7 @@
+// Calculations used in the application
+
+use chrono::{Datelike, Local, NaiveDate};
+
 //Calculate the calories of the logged meal
 pub fn macros_calories(protein: u32, carbs: u32, fat: u32) -> u32 {
     let calories: u32 = (protein * 4) + (carbs * 4) + (fat * 8);
@@ -25,4 +29,24 @@ pub fn calc_dri(bmr: f32, act_level: u8) -> f32 {
         5 => bmr * 1.9,
         _ => 0.0,
     }
+}
+
+// Derive age from birthdate instead of staticly typed number
+pub fn get_age(birthdate: NaiveDate) -> u8 {
+    let now = Local::now().date_naive();
+    let mut age = now.year() - birthdate.year();
+
+    if now.month() < birthdate.month()
+        || (now.month() == birthdate.month() && now.day() < birthdate.day())
+    {
+        age -= 1;
+    }
+    age as u8
+}
+
+pub fn step_to_calories(steps: u32, weight: f32, height: f32) -> u32 {
+    let height_m = height / 100.0;
+    let stride = height_m * 0.414;
+    let distance_km = (steps as f32 * stride) / 1000.0;
+    (distance_km * weight * 0.5) as u32
 }
