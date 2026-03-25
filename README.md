@@ -35,6 +35,7 @@ Run the application in a containerized environment to keep your system clean.
 ### **1. Run the following:**
    ```bash
    docker run -it -v $(pwd):/app/data zanderkuhne/rust-cli-fitness:latest
+```
 
 
 ### **Managing Data**
