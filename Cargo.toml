@@ -8,3 +8,4 @@ serde = { version = "1.0", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde"] }
 serde_json = "1.0"
 crossterm = "0.29"
+colored = "3.1.1"

@@ -1,9 +1,8 @@
-use std::io::Write;
 use std::{fs, io};
 
-use chrono::{DateTime, Duration, Local};
+use chrono::{Duration, Local};
 
-use crate::calc::{self, calc_bmr, calc_dri, macros_calories};
+use crate::calc::{calc_bmr, calc_dri};
 use crate::users::{LogActivity, LogMeal, User};
 
 //store the user in the json file
@@ -123,14 +122,49 @@ pub fn pull_user(name: &str) -> std::io::Result<User> {
 }
 
 //Update stored user information
-fn update_user(/* User struct */) /* not sure if it should return a value */ {}
+pub fn update_user(name: &str, new_weight: f32) -> std::io::Result<()> {
+    let mut user = pull_user(name)?;
+    user.weight = new_weight;
+
+    user.bmr = crate::calc::calc_bmr(user.height, user.weight, &user.gender, user.age);
+    user.dri = crate::calc::calc_dri(user.bmr, user.act_level);
+
+    let json = serde_json::to_string_pretty(&user)?;
+    fs::write(format!("{}.json", user.name.trim()), json)?;
+    Ok(())
+}
+
+pub fn delete_meal(name: &str, index: usize) -> std::io::Result<()> {
+    let mut user = pull_user(name)?;
+    if index < user.meals.len() {
+        user.meals.remove(index);
+        let json = serde_json::to_string_pretty(&user)?;
+        fs::write(format!("{}.json", user.name.trim()), json)?;
+        Ok(())
+    } else {
+        Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Index out of range",
+        ))
+    }
+}
+
+pub fn delete_activity(name: &str, index: usize) -> std::io::Result<()> {
+    let mut user = pull_user(name)?;
+    if index < user.activities.len() {
+        user.activities.remove(index);
+        let json = serde_json::to_string_pretty(&user)?;
+        fs::write(format!("{}.json", user.name.trim()), json)?;
+    }
+    Ok(())
+}
 
 //Log activities for user
 pub fn log_activity(name: &str, kcal_burnt: u32, act_type: String) -> std::io::Result<()> {
     let mut user = pull_user(name)?;
 
     let new_activity = LogActivity {
-        act_type: act_type,
+        act_type,
         kcal_burn: kcal_burnt,
         date: Local::now(),
     };
@@ -147,10 +181,10 @@ pub fn log_meal(name: &str, kcal: u32, protein: u32, fat: u32, carbs: u32) -> st
     let mut user: User = pull_user(&name)?;
 
     let new_meal = LogMeal {
-        kcal: kcal,
-        protein: protein,
-        carbs: carbs,
-        fat: fat,
+        kcal,
+        protein,
+        carbs,
+        fat,
         date: Local::now(),
     };
 
@@ -160,6 +194,7 @@ pub fn log_meal(name: &str, kcal: u32, protein: u32, fat: u32, carbs: u32) -> st
     Ok(())
 }
 
+// Calculate calories for a period of time
 pub fn get_calorie_sum(user: &User, days: i64) -> u32 {
     let now = Local::now().date_naive();
     let start_date = now - Duration::days(days);
@@ -174,6 +209,8 @@ pub fn get_calorie_sum(user: &User, days: i64) -> u32 {
         .sum()
 }
 
+// Calculate calories burned over a period (Only using current day calories,
+// more functionality to be added)
 pub fn get_activity_sum(user: &User, days: i64) -> u32 {
     let now = Local::now().date_naive();
     let start_date = now - Duration::days(days);

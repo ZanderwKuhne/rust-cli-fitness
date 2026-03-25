@@ -1,3 +1,5 @@
+// User and user related structs
+// Serde to store and retrieve struct data in
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 

@@ -4,7 +4,7 @@ mod helper;
 mod logic;
 mod users;
 
-use crate::users::User;
+use crate::{helper::get_input, users::User};
 use crossterm::{
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
@@ -36,7 +36,7 @@ fn main() {
                         }
                     }
                     "2" => {
-                        if let Ok(_) = logic::store_user() {
+                        if logic::store_user().is_ok() {
                             println!("User created! Please login.");
                         }
                         helper::pause();
@@ -54,7 +54,8 @@ fn main() {
                 println!("1. Log a Meal");
                 println!("2. Log an Activity");
                 println!("3. View User Dashboard");
-                println!("4. Logout");
+                println!("4. Manage User Details");
+                println!("q. Logout");
 
                 let choice = helper::get_string_input("> ");
                 match choice.as_str() {
@@ -68,11 +69,13 @@ fn main() {
 
                         let kcal = calc::macros_calories(protein, carbs, fat);
 
-                        if let Ok(_) = logic::log_meal(&user.name, kcal, protein, fat, carbs) {
-                            if let Ok(updated) = logic::pull_user(&user.name) {
+                        logic::log_meal(&user.name, kcal, protein, fat, carbs)
+                            .and_then(|_| logic::pull_user(&user.name))
+                            .map(|updated| {
                                 *user = updated;
-                            }
-                        }
+                                println!("Logged {} kcal!", kcal);
+                            })
+                            .ok();
                         helper::pause();
                     }
                     "2" => {
@@ -80,20 +83,78 @@ fn main() {
                         let act_name = helper::get_string_input("Activity name (e.g. Running): ");
                         let burned = helper::get_input("Calories burned: ");
 
-                        if let Ok(_) = logic::log_activity(&user.name, burned, act_name) {
-                            if let Ok(updated) = logic::pull_user(&user.name) {
+                        logic::log_activity(&user.name, burned, act_name)
+                            .and_then(|_| logic::pull_user(&user.name))
+                            .map(|updated| {
                                 *user = updated;
-                            }
-                            println!("Activity logged!");
-                            helper::pause();
-                        }
+                                println!("Logged Activity!")
+                            })
+                            .ok();
+                        helper::pause();
                     }
                     "3" => {
                         helper::clear_screen();
                         display::show_dashboard(user);
                         helper::pause();
                     }
-                    "4" => current_user = None,
+                    "4" => {
+                        helper::clear_screen();
+                        println!("--- Manage Data ---");
+                        println!("1. Update Current Weight");
+                        println!("2. Delete Meal");
+                        println!("3. Delete Activity");
+                        println!("q. Back");
+
+                        let sub_choice = helper::get_string_input("> ");
+                        match sub_choice.as_str() {
+                            "1" => {
+                                helper::clear_screen();
+                                let new_w = helper::get_input("Enter new weight: ");
+                                logic::update_user(&user.name, new_w as f32)
+                                    .and_then(|_| logic::pull_user(&user.name))
+                                    .map(|updated| {
+                                        *user = updated;
+                                        println!("Updated User!");
+                                    })
+                                    .ok();
+                                helper::pause();
+                            }
+                            "2" => {
+                                helper::clear_screen();
+                                display::list_meals(&user);
+
+                                let index = helper::get_input("Select meal by Index: ");
+                                logic::delete_meal(&user.name, index as usize)
+                                    .and_then(|_| logic::pull_user(&user.name))
+                                    .map(|update| {
+                                        *user = update;
+                                        println!("Meal removed!");
+                                    })
+                                    .ok();
+                                helper::pause();
+                            }
+                            "3" => {
+                                helper::clear_screen();
+                                display::list_activities(&user);
+
+                                let index = get_input("Select Activity by Index: ");
+                                logic::delete_activity(&user.name, index as usize)
+                                    .and_then(|_| logic::pull_user(&user.name))
+                                    .map(|update| {
+                                        *user = update;
+                                        println!("Activity removed!");
+                                    })
+                                    .ok();
+                                helper::pause();
+                            }
+                            "q" => break,
+                            _ => {
+                                println!("Invalid option.");
+                                helper::pause();
+                            }
+                        }
+                    }
+                    "q" => current_user = None,
                     _ => {
                         println!("Invalid option.");
                         helper::pause();
