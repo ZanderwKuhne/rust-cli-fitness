@@ -7,6 +7,7 @@ use crate::users::{LogActivity, LogMeal, User};
 
 //store the user in the json file
 pub fn store_user() -> std::io::Result<()> {
+    std::fs::create_dir_all("data")?;
     let mut sys: String = String::new();
     let mut u_name: String = String::new();
     let mut u_birth: String = String::new();
