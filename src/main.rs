@@ -19,10 +19,11 @@ fn main() {
         match &mut current_user {
             None => {
                 helper::clear_screen();
-                println!("Welcome!");
-                println!("1. Login (Load User)");
-                println!("2. Create New User");
-                println!("q. Quit");
+                display::center_vertically(5);
+                display::print_centered("Welcome!");
+                display::print_centered("1. Login (Load User)");
+                display::print_centered("2. Create New User");
+                display::print_centered("q. Quit");
 
                 let choice = helper::get_string_input("> ");
                 match choice.as_str() {
@@ -31,39 +32,40 @@ fn main() {
                         match crate::logic::pull_user(&name) {
                             Ok(user) => current_user = Some(user),
                             Err(_) => {
-                                println!("User not found!");
+                                display::print_centered("User not found!");
                                 helper::pause();
                             }
                         }
                     }
                     "2" => {
                         if logic::store_user().is_ok() {
-                            println!("User created! Please login.");
+                            display::print_centered("User created! Please login.");
                         }
                         helper::pause();
                     }
                     "q" => break,
                     _ => {
-                        println!("Invalid option.");
+                        display::print_centered("Invalid option.");
                         helper::pause();
                     }
                 }
             }
             Some(user) => {
                 helper::clear_screen();
+                display::center_vertically(8);
                 display::show_user(user);
-                println!("1. Log a Meal");
-                println!("2. Log an Activity");
-                println!("3. View User Dashboard");
-                println!("4. Manage User Details");
-                println!("5. Convert steps to calories");
-                println!("q. Logout");
+                display::print_centered("1. Log a Meal");
+                display::print_centered("2. Log an Activity");
+                display::print_centered("3. View User Dashboard");
+                display::print_centered("4. Manage User Details");
+                display::print_centered("5. Convert steps to calories");
+                display::print_centered("q. Logout");
 
                 let choice = helper::get_string_input("> ");
                 match choice.as_str() {
                     "1" => {
                         helper::clear_screen();
-                        println!("Enter meal details:");
+                        display::print_centered("Enter meal details:");
 
                         let protein = helper::get_input("Protein (g): ");
                         let carbs = helper::get_input("Carbs (g): ");
@@ -89,7 +91,7 @@ fn main() {
                             .and_then(|_| logic::pull_user(&user.name))
                             .map(|updated| {
                                 *user = updated;
-                                println!("Logged Activity!")
+                                display::print_centered("Logged Activity!")
                             })
                             .ok();
                         helper::pause();
@@ -101,11 +103,14 @@ fn main() {
                     }
                     "4" => {
                         helper::clear_screen();
-                        println!("--- Manage Data ---");
-                        println!("1. Update Current Weight");
-                        println!("2. Delete Meal");
-                        println!("3. Delete Activity");
-                        println!("q. Back");
+                        display::center_vertically(6);
+                        display::print_centered("--- Manage Data ---");
+                        display::print_centered("1. Update Current Weight");
+                        display::print_centered("2. Update Goal Weight");
+                        display::print_centered("3. Delete Meal");
+                        display::print_centered("4. Delete Activity");
+                        display::print_centered("5. Delete Logged Weight");
+                        display::print_centered("q. Back");
 
                         let sub_choice = helper::get_string_input("> ");
                         match sub_choice.as_str() {
@@ -123,6 +128,18 @@ fn main() {
                             }
                             "2" => {
                                 helper::clear_screen();
+                                let new_w = helper::get_input("Enter new goal weight: ");
+                                logic::update_goal_weight(&user.name, new_w as f32)
+                                    .and_then(|_| logic::pull_user(&user.name))
+                                    .map(|update| {
+                                        *user = update;
+                                        println!("Updated User!");
+                                    })
+                                    .ok();
+                                helper::pause();
+                            }
+                            "3" => {
+                                helper::clear_screen();
                                 display::list_meals(&user);
 
                                 let index = helper::get_input("Select meal by Index: ");
@@ -135,7 +152,7 @@ fn main() {
                                     .ok();
                                 helper::pause();
                             }
-                            "3" => {
+                            "4" => {
                                 helper::clear_screen();
                                 display::list_activities(&user);
 
@@ -149,7 +166,32 @@ fn main() {
                                     .ok();
                                 helper::pause();
                             }
-                            "q" => break,
+                            "5" => {
+                                helper::clear_screen();
+                                display::list_weights(user);
+
+                                if !user.weights.is_empty() {
+                                    let input = helper::get_input(
+                                        "\nEnter the [number] to delete (or 999 to cancel): ",
+                                    );
+                                    if input != 999 {
+                                        if logic::delete_weight_entry(&user.name, input as usize)
+                                            .is_ok()
+                                        {
+                                            if let Ok(updated) = logic::pull_user(&user.name) {
+                                                *user = updated;
+                                                println!(
+                                                    "Weight entry removed and stats recalculated!"
+                                                );
+                                            }
+                                        } else {
+                                            println!("Invalid selection.");
+                                        }
+                                    }
+                                }
+                                helper::pause();
+                            }
+                            "q" => continue,
                             _ => {
                                 println!("Invalid option.");
                                 helper::pause();

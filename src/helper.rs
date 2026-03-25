@@ -9,6 +9,8 @@ use std::{
     io::{Write, stdout},
 };
 
+use crate::display;
+
 pub fn get_input(prompt: &str) -> u32 {
     print!("{}", prompt);
     io::stdout().flush().unwrap();
@@ -32,7 +34,7 @@ pub fn clear_screen() {
 }
 
 pub fn pause() {
-    println!("\nPress Enter to return...");
+    display::print_centered("\nPress Enter to return...");
     let mut _unused = String::new();
     io::stdin().read_line(&mut _unused).unwrap();
 }

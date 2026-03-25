@@ -19,18 +19,6 @@ pub fn calc_bmr(height: f32, weight: f32, gender: &str, age: u8) -> f32 {
     bmr
 }
 
-//Calculate Recommended Daily Intake using BMR
-pub fn calc_dri(bmr: f32, act_level: u8) -> f32 {
-    match act_level {
-        1 => bmr * 1.2,
-        2 => bmr * 1.375,
-        3 => bmr * 1.55,
-        4 => bmr * 1.725,
-        5 => bmr * 1.9,
-        _ => 0.0,
-    }
-}
-
 // Derive age from birthdate instead of staticly typed number
 pub fn get_age(birthdate: NaiveDate) -> u8 {
     let now = Local::now().date_naive();
@@ -44,9 +32,31 @@ pub fn get_age(birthdate: NaiveDate) -> u8 {
     age as u8
 }
 
+// A basic step to calorie converter using user details and MET calculations
 pub fn step_to_calories(steps: u32, weight: f32, height: f32) -> u32 {
     let height_m = height / 100.0;
     let stride = height_m * 0.414;
     let distance_km = (steps as f32 * stride) / 1000.0;
     (distance_km * weight * 0.5) as u32
+}
+
+pub fn calc_dyna_dri(bmr: f32, act_level: u8, current_w: f32, goal_w: f32) -> f32 {
+    let maintenance = match act_level {
+        1 => bmr * 1.2,
+        2 => bmr * 1.375,
+        3 => bmr * 1.55,
+        4 => bmr * 1.725,
+        5 => bmr * 1.9,
+        _ => bmr * 1.2,
+    };
+
+    let diff = current_w - goal_w;
+
+    if diff >= 0.5 {
+        (maintenance - 500.0).max(1200.0)
+    } else if diff <= -0.5 {
+        maintenance + 300.0
+    } else {
+        maintenance
+    }
 }

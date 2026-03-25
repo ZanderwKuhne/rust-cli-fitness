@@ -2,7 +2,7 @@ use std::{fs, io};
 
 use chrono::{Duration, Local, NaiveDate};
 
-use crate::calc::{calc_bmr, calc_dri, get_age};
+use crate::calc::{calc_bmr, calc_dyna_dri, get_age};
 use crate::users::{LogActivity, LogMeal, User};
 
 //store the user in the json file
@@ -94,7 +94,7 @@ pub fn store_user() -> std::io::Result<()> {
 
     let u_act_level: u8 = activity.trim().parse().expect("No byte read");
     let u_bmr: f32 = calc_bmr(f_height, f_weight, &u_gender, f_age);
-    let u_dri: f32 = calc_dri(u_bmr, u_act_level);
+    let u_dri: f32 = calc_dyna_dri(u_bmr, u_act_level, f_weight, f_goal_weight);
 
     let user = User {
         name: u_name.trim().to_string(),
@@ -137,7 +137,16 @@ pub fn update_user(name: &str, new_weight: f32) -> std::io::Result<()> {
     user.weight = new_weight;
 
     user.bmr = crate::calc::calc_bmr(user.height, user.weight, &user.gender, user.age);
-    user.dri = crate::calc::calc_dri(user.bmr, user.act_level);
+    user.dri = crate::calc::calc_dyna_dri(user.bmr, user.act_level, user.weight, user.goal_weight);
+
+    let json = serde_json::to_string_pretty(&user)?;
+    fs::write(format!("{}.json", user.name.trim()), json)?;
+    Ok(())
+}
+
+pub fn update_goal_weight(name: &str, new_weight: f32) -> std::io::Result<()> {
+    let mut user = pull_user(name)?;
+    user.goal_weight = new_weight;
 
     let json = serde_json::to_string_pretty(&user)?;
     fs::write(format!("{}.json", user.name.trim()), json)?;
@@ -233,4 +242,28 @@ pub fn get_activity_sum(user: &User, days: i64) -> u32 {
         })
         .map(|act| act.kcal_burn)
         .sum()
+}
+pub fn delete_weight_entry(name: &str, index: usize) -> std::io::Result<()> {
+    let mut user = pull_user(name)?;
+
+    if index < user.weights.len() {
+        user.weights.remove(index);
+
+        if let Some((_, last_w)) = user.weights.last() {
+            user.weight = *last_w;
+        }
+
+        user.bmr = crate::calc::calc_bmr(user.height, user.weight, &user.gender, user.age);
+        user.dri =
+            crate::calc::calc_dyna_dri(user.bmr, user.act_level, user.weight, user.goal_weight);
+
+        let json = serde_json::to_string_pretty(&user)?;
+        fs::write(format!("{}.json", user.name.trim()), json)?;
+        Ok(())
+    } else {
+        Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Index out of range!",
+        ))
+    }
 }

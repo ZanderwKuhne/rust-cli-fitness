@@ -9,3 +9,9 @@ chrono = { version = "0.4", features = ["serde"] }
 serde_json = "1.0"
 crossterm = "0.29"
 colored = "3.1.1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
