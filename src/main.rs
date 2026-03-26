@@ -116,15 +116,27 @@ fn main() {
                         match sub_choice.as_str() {
                             "1" => {
                                 helper::clear_screen();
-                                let new_w = helper::get_input("Enter new weight: ");
-                                logic::update_user(&user.name, new_w as f32)
-                                    .and_then(|_| logic::pull_user(&user.name))
-                                    .map(|updated| {
-                                        *user = updated;
-                                        println!("Updated User!");
-                                    })
-                                    .ok();
-                                helper::pause();
+                                if user.system {
+                                    let new_w = helper::get_input("Enter new weight in kg: ");
+                                    logic::update_user(&user.name, new_w as f32)
+                                        .and_then(|_| logic::pull_user(&user.name))
+                                        .map(|updated| {
+                                            *user = updated;
+                                            println!("Updated User!");
+                                        })
+                                        .ok();
+                                    helper::pause();
+                                } else {
+                                    let new_w = helper::get_input("Enter new weight in lb: ");
+                                    logic::update_user(&user.name, (new_w as f32) / 2.205)
+                                        .and_then(|_| logic::pull_user(&user.name))
+                                        .map(|updated| {
+                                            *user = updated;
+                                            println!("Updated User!");
+                                        })
+                                        .ok();
+                                    helper::pause();
+                                }
                             }
                             "2" => {
                                 helper::clear_screen();
