@@ -281,7 +281,7 @@ pub fn delete_weight_entry(name: &str, index: usize) -> std::io::Result<()> {
             crate::calc::calc_dyna_dri(user.bmr, user.act_level, user.weight, user.goal_weight);
 
         let json = serde_json::to_string_pretty(&user)?;
-        fs::write(format!("{}.json", user.name.trim()), json)?;
+        fs::write(format!("data/{}.json", user.name.trim()), json)?;
         Ok(())
     } else {
         Err(std::io::Error::new(
