@@ -33,17 +33,39 @@ pub fn store_user() -> std::io::Result<()> {
         }
     };
     let f_age = get_age(u_birthdate);
-    println!("Metric system: 1\nImperial system: 2\n");
-    io::stdin()
-        .read_line(&mut sys)
-        .expect("Failed to capture system");
+    loop {
+        sys.clear();
+        println!("Metric system: 1\nImperial system: 2\n");
+        io::stdin()
+            .read_line(&mut sys)
+            .expect("Failed to capture system");
+        match sys.trim() {
+            "1" => break,
+            "2" => break,
+            _ => {
+                println!("Invalid option: {}", sys);
+                continue;
+            }
+        }
+    }
 
     let u_system: bool = if sys.trim() == "1" { true } else { false };
 
-    println!("What is your gender? (male/female)\n");
-    io::stdin()
-        .read_line(&mut u_gender)
-        .expect("Failed to capture gender");
+    loop {
+        u_gender.clear();
+        println!("What is your gender? (male/female)\n");
+        io::stdin()
+            .read_line(&mut u_gender)
+            .expect("Failed to capture gender");
+        match u_gender.trim().to_lowercase().as_str() {
+            "male" => break,
+            "female" => break,
+            _ => {
+                println!("Invalid option: {}", u_gender);
+                continue;
+            }
+        }
+    }
 
     if u_system {
         println!("What is your height in cm?\n");

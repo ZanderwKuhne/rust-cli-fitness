@@ -19,33 +19,64 @@ pub fn show_user(user: &User) {
     .normal();
     print_centered_colored(&age_gen_plain, age_gen_colored.into());
 
-    let w_h_plain = format!(
-        "Weight: {:.1} kg | Height: {:.1} cm",
-        user.weight, user.height
-    );
-    let w_h_colored = format!(
-        "Weight: {} kg | Height: {} cm",
-        format!("{:.1}", user.weight).red(),
-        format!("{:.1}", user.height).red()
-    )
-    .normal();
-    print_centered_colored(&w_h_plain, w_h_colored.into());
+    if user.system {
+        let w_h_plain = format!(
+            "Weight: {:.1} kg | Height: {:.1} cm",
+            user.weight, user.height
+        );
+        let w_h_colored = format!(
+            "Weight: {} kg | Height: {} cm",
+            format!("{:.1}", user.weight).red(),
+            format!("{:.1}", user.height).red()
+        )
+        .normal();
+        print_centered_colored(&w_h_plain, w_h_colored.into());
 
-    print_centered("----------------------------");
+        print_centered("----------------------------");
 
-    let bmr_plain = format!("BMR: {:.2} kcal", user.bmr);
-    let bmr_colored = format!("BMR: {} kcal", format!("{:.2}", user.bmr).red()).normal();
-    print_centered_colored(&bmr_plain, bmr_colored.into());
+        let bmr_plain = format!("BMR: {:.2} kcal", user.bmr);
+        let bmr_colored = format!("BMR: {} kcal", format!("{:.2}", user.bmr).red()).normal();
+        print_centered_colored(&bmr_plain, bmr_colored.into());
 
-    let dri_plain = format!("Daily Target (DRI): {:.2} kcal", user.dri);
-    let dri_colored = format!(
-        "Daily Target (DRI): {} kcal",
-        format!("{:.2}", user.dri).red()
-    )
-    .normal();
-    print_centered_colored(&dri_plain, dri_colored.into());
+        let dri_plain = format!("Daily Target (DRI): {:.2} kcal", user.dri);
+        let dri_colored = format!(
+            "Daily Target (DRI): {} kcal",
+            format!("{:.2}", user.dri).red()
+        )
+        .normal();
+        print_centered_colored(&dri_plain, dri_colored.into());
 
-    print_centered("============================");
+        print_centered("============================");
+    } else {
+        let w_h_plain = format!(
+            "Weight: {:.1} lb | Height: {:.1} in",
+            user.weight * 2.205,
+            user.height * 0.394
+        );
+        let w_h_colored = format!(
+            "Weight: {} lb | Height: {} in",
+            format!("{:.1}", user.weight * 2.205).red(),
+            format!("{:.1}", user.height * 0.394).red()
+        )
+        .normal();
+        print_centered_colored(&w_h_plain, w_h_colored.into());
+
+        print_centered("----------------------------");
+
+        let bmr_plain = format!("BMR: {:.2} kcal", user.bmr);
+        let bmr_colored = format!("BMR: {} kcal", format!("{:.2}", user.bmr).red()).normal();
+        print_centered_colored(&bmr_plain, bmr_colored.into());
+
+        let dri_plain = format!("Daily Target (DRI): {:.2} kcal", user.dri);
+        let dri_colored = format!(
+            "Daily Target (DRI): {} kcal",
+            format!("{:.2}", user.dri).red()
+        )
+        .normal();
+        print_centered_colored(&dri_plain, dri_colored.into());
+
+        print_centered("============================");
+    }
 }
 
 pub fn show_dashboard(user: &User) {
@@ -182,17 +213,32 @@ pub fn list_weights(user: &User) {
     }
 
     for (index, (date, weight)) in user.weights.iter().enumerate() {
-        let date_str = date.format("%b %d").to_string();
-        let plain = format!("[{}] {} - {:.1} kg", index, date_str, weight);
-        let colored = format!(
-            "[{}] {} - {} kg",
-            index.to_string().yellow(),
-            date_str.bright_black(),
-            format!("{:.1}", weight).red()
-        )
-        .normal();
+        if user.system {
+            let date_str = date.format("%b %d").to_string();
+            let plain = format!("[{}] {} - {:.1} kg", index, date_str, weight);
+            let colored = format!(
+                "[{}] {} - {} kg",
+                index.to_string().yellow(),
+                date_str.bright_black(),
+                format!("{:.1}", weight).red()
+            )
+            .normal();
 
-        print_centered_colored(&plain, colored.into());
+            print_centered_colored(&plain, colored.into());
+        } else {
+            let lb_weight = weight * 2.205;
+            let date_str = date.format("%b %d").to_string();
+            let plain = format!("[{}] {} - {:.1} lb", index, date_str, lb_weight);
+            let colored = format!(
+                "[{}] {} - {} lb",
+                index.to_string().yellow(),
+                date_str.bright_black(),
+                format!("{:.1}", lb_weight).red()
+            )
+            .normal();
+
+            print_centered_colored(&plain, colored.into());
+        }
     }
 }
 
@@ -220,16 +266,27 @@ fn weight_chart(user: &User) {
         let bar = "█".repeat(bar_len);
         let date_str = date.format("%b %d").to_string();
 
-        let plain = format!("{}: {:>5.1} kg {}", date_str, weight, bar);
-        let colored = format!(
-            "{}: {:>5.1} kg {}",
-            date_str.bright_black(),
-            weight,
-            bar.red()
-        )
-        .normal();
-
-        print_centered_colored(&plain, colored.into());
+        if user.system {
+            let plain = format!("{}: {:>5.1} kg {}", date_str, weight, bar);
+            let colored = format!(
+                "{}: {:>5.1} kg {}",
+                date_str.bright_black(),
+                weight,
+                bar.red()
+            )
+            .normal();
+            print_centered_colored(&plain, colored.into());
+        } else {
+            let plain = format!("{}: {:>5.1} lb {}", date_str, weight * 2.205, bar);
+            let colored = format!(
+                "{}: {:>5.1} lb {}",
+                date_str.bright_black(),
+                weight * 2.205,
+                bar.red()
+            )
+            .normal();
+            print_centered_colored(&plain, colored.into());
+        }
     }
 
     print_centered("------------------------------------------");
@@ -237,12 +294,22 @@ fn weight_chart(user: &User) {
     let current_weight = user.weight;
     let diff = current_weight - user.goal_weight;
 
-    if diff > 0.0 {
-        let diff_str = format!("{:.1} kg to go!", diff);
-        print_centered_colored(&diff_str, diff_str.cyan().into());
+    if user.system {
+        if diff > 0.0 {
+            let diff_str = format!("{:.1} kg to go!", diff);
+            print_centered_colored(&diff_str, diff_str.cyan().into());
+        } else {
+            let win_msg = "Goal weight reached!";
+            print_centered_colored(win_msg, win_msg.green().bold().into());
+        }
     } else {
-        let win_msg = "Goal weight reached!";
-        print_centered_colored(win_msg, win_msg.green().bold().into());
+        if diff > 0.0 {
+            let diff_str = format!("{:.1} lb to go!", diff * 2.205);
+            print_centered_colored(&diff_str, diff_str.cyan().into());
+        } else {
+            let win_msg = "Goal weight reached!";
+            print_centered_colored(win_msg, win_msg.green().bold().into());
+        }
     }
 }
 
