@@ -23,7 +23,7 @@ A high-performance, terminal-based fitness and calorie tracker built in Rust. Th
 
 2. Build:
    ```bash
-   cd rust-fitness-cli
+   cd rust-cli-fitness
    cargo build --release
 
 3. Run it:
