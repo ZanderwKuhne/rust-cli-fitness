@@ -213,7 +213,7 @@ pub fn log_activity(name: &str, kcal_burnt: u32, act_type: String) -> std::io::R
     user.activities.push(new_activity);
 
     let json = serde_json::to_string_pretty(&user)?;
-    fs::write(format!("{}.json", name.trim()), json)?;
+    fs::write(format!("data/{}.json", name.trim()), json)?;
 
     Ok(())
 }
@@ -232,7 +232,7 @@ pub fn log_meal(name: &str, kcal: u32, protein: u32, fat: u32, carbs: u32) -> st
 
     user.meals.push(new_meal);
     let json = serde_json::to_string_pretty(&user)?;
-    fs::write(format!("{}.json", name.trim()), json)?;
+    fs::write(format!("data/{}.json", name.trim()), json)?;
     Ok(())
 }
 
