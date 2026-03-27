@@ -19,7 +19,7 @@ A high-performance, terminal-based fitness and calorie tracker built in Rust. Th
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com
+   git clone https://github.com/ZanderwKuhne/rust-cli-fitness.git
    cd rust-fitness-cli
    cargo build --release
 
