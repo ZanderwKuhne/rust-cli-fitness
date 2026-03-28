@@ -1,5 +1,4 @@
 // Calculations used in the application
-
 use chrono::{Datelike, Local, NaiveDate};
 
 //Calculate the calories of the logged meal
